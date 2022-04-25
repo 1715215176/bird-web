@@ -78,6 +78,33 @@ const routes = [
     ],
   },
   {
+    path: "/dataset",
+    name: "dataset",
+    meta: {
+      title: "数据配置",
+      icon: "el-icon-s-tools",
+      showInMenu: true,
+    },
+    component: () =>
+      import(/* webpackChunkName: "Layout" */ "@/views/Layout.vue"),
+    redirect: "/dataset/swiperSet",
+    children: [
+      {
+        path: "/swiperSet",
+        meta: {
+          title: "轮播图配置",
+          icon: "",
+          showInMenu: true,
+        },
+        name: "swiperSet",
+        component: () =>
+          import(
+            /* webpackChunkName: "Home" */ "@/views/dataCenter/SwiperSet.vue"
+          ),
+      },
+    ],
+  },
+  {
     path: "/login",
     name: "Login",
     meta: {

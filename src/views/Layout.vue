@@ -221,6 +221,7 @@ export default {
     },
     goOut() {
       localStorage.removeItem("hotelUserInfo");
+      localStorage.removeItem("activeName");
       this.$router.push({ name: "Login" });
     },
     async pwsSave() {
