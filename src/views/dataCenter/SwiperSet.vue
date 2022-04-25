@@ -1,15 +1,15 @@
 <template>
   <el-card>
     <el-row class="search-warp">
-      <el-form size="small" @keyup.enter.native="getRoomTypeList()">
+      <el-form size="small" @keyup.enter.native="getSwiperList()">
         <el-input
-          v-model="searchParams.roomTypeName"
-          placeholder="请输入房型名称"
+          v-model="searchParams.swiperName"
+          placeholder="请输入鸟类名称"
           size="small"
           clearable
           class="w200 mr10"
         ></el-input>
-        <el-button type="primary" size="small" @click="getRoomTypeList()"
+        <el-button type="primary" size="small" @click="getSwiperList()"
           >查询</el-button
         >
         <el-button size="small" @click="reset()">重置</el-button>
@@ -17,7 +17,7 @@
     </el-row>
     <div class="list-warp">
       <div class="table-title">
-        <div class="table-name">房型列表</div>
+        <div class="table-name">轮播图列表</div>
         <el-button
           type="primary"
           size="small"
@@ -28,27 +28,27 @@
       </div>
       <div class="table-warp">
         <el-table
-          :data="roomTypeList"
+          :data="swiperList"
           border
           stripe
           v-loading="loading"
           :header-cell-style="headStyle"
         >
-          <el-table-column label="房型名称" min-width="200">
+          <el-table-column label="名称" min-width="200">
             <template slot-scope="scope">
               <span class="blue pointer" @click="edit(scope.row)">{{
-                scope.row.roomTypeName
+                scope.row.swiperName
               }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="房间数" width="200">
+          <el-table-column label="图片" width="400">
             <template slot-scope="scope">
-              <span>{{ scope.row.roomNum }}</span>
+              <img :src="scope.row.swiperUrl" class="image" alt="" />
             </template>
           </el-table-column>
-          <el-table-column label="可住人数" width="200">
+          <el-table-column label="链接" width="400">
             <template slot-scope="scope">
-              <span>{{ scope.row.roomPeople }}</span>
+              <span>{{ scope.row.swiperUrl }}</span>
             </template>
           </el-table-column>
           <el-table-column label="状态" width="200">
@@ -93,8 +93,8 @@
       </div>
     </div>
     <el-pagination
-      @size-change="(val) => getRoomTypeList(val, 1)"
-      @current-change="getRoomTypeList(searchParams.pageSize, val)"
+      @size-change="(val) => getSwiperList(val, 1)"
+      @current-change="getSwiperList(searchParams.pageSize, val)"
       :current-page="searchParams.pageIndex"
       :page-sizes="[10, 20, 30, 40]"
       :page-size="searchParams.pageSize"
@@ -103,27 +103,56 @@
       :total="total"
     >
     </el-pagination>
-    <el-dialog title="新增房型" :visible.sync="dialogVisible" width="30%">
+    <el-dialog title="新增轮播图" :visible.sync="dialogVisible" width="30%">
       <el-form
-        :model="roomInfo"
+        :model="swiperInfo"
         ref="form"
         :rules="rules"
         label-width="120px"
         :inline="false"
         size="small"
       >
-        <el-form-item label="房型名称：" prop="roomTypeName">
-          <el-input v-model="roomInfo.roomTypeName"></el-input>
+        <el-form-item label="名称：" prop="swiperName">
+          <el-input class="w200" v-model="swiperInfo.swiperName"></el-input>
         </el-form-item>
-        <el-form-item label="房型数量：" prop="roomNum">
-          <el-input v-model="roomInfo.roomNum"></el-input>
+        <el-form-item label="详情链接：" prop="swiperId">
+          <el-select
+            v-model="swiperInfo.swiperId"
+            placeholder="请选择跳转链接"
+            clearable
+            filterable
+            class="w200"
+          >
+            <el-option
+              v-for="item in birdList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            >
+            </el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="可入住人数：" prop="roomPeople">
-          <el-input v-model="roomInfo.roomPeople"></el-input>
+        <el-form-item label="图片：" prop="roomPeople">
+          <el-upload
+            action="/api/upload/uploadImg"
+            list-type="picture-card"
+            :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemove"
+            :http-request="upload"
+            :file-list="upLoadImage"
+            :limit="1"
+            :on-exceed="max"
+            :class="{ hide: Boolean(swiperInfo.swiperUrl) }"
+          >
+            <i class="el-icon-plus"></i>
+          </el-upload>
+          <el-dialog :visible.sync="imgDialogVisible">
+            <img width="100%" :src="dialogImageUrl" alt="" />
+          </el-dialog>
         </el-form-item>
         <el-form-item label="状态：" prop="state">
-          <el-radio v-model="roomInfo.state" :label="0">禁用</el-radio>
-          <el-radio v-model="roomInfo.state" :label="1">开启</el-radio>
+          <el-radio v-model="swiperInfo.state" :label="0">禁用</el-radio>
+          <el-radio v-model="swiperInfo.state" :label="1">开启</el-radio>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -141,14 +170,16 @@ export default {
   data() {
     return {
       searchParams: {
-        roomTypeName: "",
+        swiperName: "",
         pageSize: 10,
         pageIndex: 1,
       },
-      roomInfo: {
-        roomTypeName: "",
-        roomNum: null,
-        roomPeople: null,
+      birdList: [],
+      swiperInfo: {
+        name: "",
+        swiperName: "",
+        swiperUrl: "",
+        swiperId: null,
         state: 1,
       },
       headStyle: {
@@ -156,60 +187,57 @@ export default {
       },
       activeName: "1",
       loading: true,
-      roomTypeList: [],
+      swiperList: [],
       total: 0,
       dialogVisible: false,
+      dialogImageUrl: "",
+      upLoadImage: [],
+      imgDialogVisible: false,
       rules: {
-        roomTypeName: [
-          { required: true, message: "房型名称不能为空", tiggeer: "blur" },
+        swiperName: [
+          { required: true, message: "名称不能为空", tiggeer: "blur" },
         ],
-        roomNum: [
+        swiperId: [
           {
-            required: true,
             validator: (rules, value, callback) => {
-              const reg = /^[0-9]*[1-9][0-9]*$/;
-              if (!reg.test(value)) {
-                callback(new Error("房间数只能是正整数~"));
+              if (!value) {
+                callback(new Error("详情链接不能为空~"));
               } else {
                 callback();
               }
             },
-            tiggeer: "bulr",
-          },
-        ],
-        roomPeople: [
-          {
-            required: true,
-            validator: (rules, value, callback) => {
-              const reg = /^[0-9]*[1-9][0-9]*$/;
-              if (!reg.test(value)) {
-                callback(new Error("入住人数只能是整数~"));
-              } else {
-                callback();
-              }
-            },
-            tiggeer: "bulr",
+            tiggeer: "change",
           },
         ],
       },
     };
   },
   mounted() {
-    this.getRoomTypeList();
-    this.activeName = this.$route.query.activeName || "1";
+    this.getSwiperList();
+    this.getBirdList();
+    // this.activeName = this.$route.query.activeName || "1";
   },
   methods: {
-    async getRoomTypeList() {
+    async getSwiperList() {
       const params = {
         ...this.searchParams,
       };
       this.loading = true;
-      const res = await this.$axios.post("/api/hotel/getRoomTypeList", params);
+      const res = await this.$axios.post(
+        "/api/dataCenter/getSwiperList",
+        params
+      );
       if (res) {
-        this.roomTypeList = res.data;
+        this.swiperList = res.data;
         this.total = res.total;
       }
       this.loading = false;
+    },
+    async getBirdList() {
+      const res = await this.$axios.get("/api/bird/getBirdList");
+      if (res.code === "200") {
+        this.birdList = res.data;
+      }
     },
     /** 确认设置房型 */
     async confirmAdd() {
@@ -223,13 +251,17 @@ export default {
     },
     async save() {
       const params = {
-        ...this.roomInfo,
+        ...this.swiperInfo,
       };
-      const res = await this.$axios.post("/api/hotel/addRoom", params);
+      if (!params.swiperUrl) {
+        this.$message.error("图片必须上传");
+        return;
+      }
+      const res = await this.$axios.post("/api/dataCenter/saveSwiper", params);
       if (res.code === "200") {
         this.$message.success(`${params.id ? "编辑成功" : "新增成功"}`);
         this.dialogVisible = false;
-        this.getRoomTypeList();
+        this.getSwiperList();
       }
     },
     /** 删除房型 */
@@ -237,9 +269,12 @@ export default {
       const params = {
         id: row.id,
       };
-      const res = await this.$axios.post("/api/hotel/deleteRoom", params);
+      const res = await this.$axios.post(
+        "/api/dataCenter/deleteSwiper",
+        params
+      );
       if (res.code === "200") {
-        this.getRoomTypeList();
+        this.getSwiperList();
         this.$message.success("删除成功");
       }
     },
@@ -249,22 +284,14 @@ export default {
         id: row.id,
         state: row.state === 0 ? 1 : 0,
       };
-      const res = await this.$axios.post("/api/hotel/updateState", params);
+      const res = await this.$axios.post("/api/dataCenter/updateState", params);
       if (res.code === "200") {
-        this.getRoomTypeList();
-        this.$message.success(
-          `${row.state === 0 ? "房型已开启" : "房型已暂停"}`
-        );
+        this.getSwiperList();
+        this.$message.success(`${row.state === 0 ? "已开启" : "已停用"}`);
       }
     },
     cancel() {
       this.dialogVisible = false;
-      this.roomInfo = {
-        roomTypeName: "",
-        roomNum: null,
-        roomPeople: null,
-        state: 1,
-      };
     },
     reset() {
       this.searchParams = {
@@ -272,26 +299,54 @@ export default {
         pageSize: 10,
         pageIndex: 1,
       };
-      this.getRoomTypeList();
+      this.getSwiperList();
     },
     async edit(row) {
       this.dialogVisible = true;
+      this.upLoadImage = [];
+      this.swiperInfo.swiperUrl = "";
       const params = {
         id: row.id,
       };
-      const res = await this.$axios.post("/api/hotel/getRoomById", params);
+      const res = await this.$axios.post(
+        "/api/dataCenter/getSwiperById",
+        params
+      );
       if (res.code === "200") {
-        this.roomInfo = res.data;
+        this.swiperInfo = res.data;
+        this.upLoadImage.push({ url: res.data.swiperUrl });
       }
     },
     addBtn() {
+      this.upLoadImage = [];
       this.dialogVisible = true;
-      this.roomInfo = {
-        roomTypeName: "",
-        roomNum: null,
-        roomPeople: null,
+      this.swiperInfo = {
+        name: "",
+        swiperName: "",
+        swiperUrl: "",
+        swiperId: null,
         state: 1,
       };
+    },
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+      this.swiperInfo.swiperUrl = "";
+    },
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+      this.imgDialogVisible = true;
+    },
+    async upload(e) {
+      let formData = new FormData();
+      formData.append("file", e.file);
+      const res = await this.$axios.post("/api/upload/uploadImg", formData);
+      if (res.code === "200") {
+        this.swiperInfo.swiperUrl = res.fileSqlUrl;
+        console.log(this.swiperInfo.swiperUrl);
+      }
+    },
+    max() {
+      this.$message.error("只能上传一张图片");
     },
   },
 };
@@ -346,5 +401,15 @@ export default {
 }
 ::v-deep .el-dialog__body {
   padding: 20px 30px;
+}
+.hide ::v-deep .el-upload--picture-card {
+  display: none;
+}
+.image {
+  width: 300px;
+  height: 200px;
+}
+.ml10 {
+  margin-left: 10px;
 }
 </style>

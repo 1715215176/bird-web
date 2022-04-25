@@ -117,16 +117,6 @@ export default {
       this.dialogImageUrl = file.url;
       this.dialogVisible = true;
     },
-    async save() {
-      const res = await this.$axios.post("/api/bird/upload", this.form);
-      if (res.code === "200") {
-        this.$message.success("新增成功");
-        this.$router.push({name: 'BirdList'})
-      }
-    },
-    cancel() {
-      this.$router.push({name: 'Home'})
-    },
     upload(e) {
       console.log(e);
       let formData = new FormData();
@@ -142,9 +132,19 @@ export default {
         this.form.imgUrl = res.fileSqlUrl;
       });
     },
+    async save() {
+      const res = await this.$axios.post("/api/bird/upload", this.form);
+      if (res.code === "200") {
+        this.$message.success("新增成功");
+        this.$router.push({ name: "BirdList" });
+      }
+    },
+    cancel() {
+      this.$router.push({ name: "Home" });
+    },
     max() {
-      this.$message.error("只能上传一张图片")
-    }
+      this.$message.error("只能上传一张图片");
+    },
   },
 };
 </script>

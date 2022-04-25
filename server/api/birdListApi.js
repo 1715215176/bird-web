@@ -1,6 +1,5 @@
 const mysql = require("mysql");
 const config = require("../config");
-const fs = require("fs");
 const express = require("express");
 const router = express.Router();
 const connection = mysql.createConnection(config);

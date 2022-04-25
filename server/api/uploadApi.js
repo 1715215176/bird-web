@@ -1,14 +1,14 @@
 const express = require("express");
 const mysql = require("mysql");
 const config = require("../config");
-const path = require('path');
-const multer = require('multer')
+const path = require("path");
+const multer = require("multer");
 const router = express.Router();
 const connection = mysql.createConnection(config);
 connection.connect();
 // 建立数据库连接
 let fileSqlUrl = "http://localhost:9999/";
-let fileSqlName = '';
+let fileSqlName = "";
 const storage = multer.diskStorage({
   //设置 上传图片服务器位置
   destination: path.resolve(__dirname, "../static"),
@@ -46,12 +46,12 @@ const imageUploader = multer({
 router.post("/uploadImg", imageUploader, (req, res) => {
   connection.query(
     `insert into img_list (img_url) values('${fileSqlUrl}')`,
-    (err, data) => {
+    (err) => {
       if (err) {
-        res.send({ err: 1, msg: "增加数据失败", success: false });
+        res.send({ err: 1, msg: "增加数据失败", code: "400" });
         res.end();
       } else {
-        res.send({ err: 0, msg: "添加成功", success: true, fileSqlUrl });
+        res.send({ err: 0, msg: "添加成功", code: "200", fileSqlUrl });
         res.end();
       }
       fileSqlUrl = "http://localhost:9999/";

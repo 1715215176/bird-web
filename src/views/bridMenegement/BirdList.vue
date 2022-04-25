@@ -1,5 +1,15 @@
 <template>
   <div class="list-bg">
+    <el-carousel :interval="4000" type="card" height="200px">
+      <el-carousel-item v-for="item in swiperList" :key="item.id">
+        <img
+          :src="item.swiperUrl"
+          alt=""
+          class="swiper-image"
+          @click="getBirdDetail(item.swiperId)"
+        />
+      </el-carousel-item>
+    </el-carousel>
     <div class="search-warp">
       <el-input
         v-model="bridName"
@@ -11,11 +21,6 @@
       <el-button type="primary" size="small" @click="search">查询</el-button>
       <el-button size="small" @click="reset">重置</el-button>
     </div>
-    <el-carousel :interval="4000" type="card" height="200px">
-      <el-carousel-item v-for="item in 6" :key="item">
-        <h3 class="medium">{{ item }}</h3>
-      </el-carousel-item>
-    </el-carousel>
     <div class="bird-warp">
       <div
         v-for="(item, index) in birdList"
@@ -36,10 +41,12 @@ export default {
     return {
       birdList: [],
       bridName: "",
+      swiperList: [],
     };
   },
   mounted() {
     this.search();
+    this.getSwiperList();
   },
   methods: {
     getBirdDetail(id) {
@@ -47,7 +54,6 @@ export default {
     },
     async search() {
       const res = await this.$axios.get("/api/bird/getBirdList");
-      console.log(res);
       if (res.code === "200") {
         console.log(res.data);
         this.birdList = res.data;
@@ -56,6 +62,13 @@ export default {
     reset() {
       this.bridName = "";
       this.birdList = JSON.parse(localStorage.getItem("birdList")) || [];
+    },
+    async getSwiperList() {
+      const res = await this.$axios.post("/api/dataCenter/getSwiperList", {});
+      if (res) {
+        this.swiperList = [...res.data].filter((v) => v.state === 1);
+        console.log(this.swiperList);
+      }
     },
   },
 };
@@ -114,5 +127,12 @@ export default {
 }
 .el-carousel {
   /* padding: 16px; */
+}
+.swiper-image {
+  width: 100%;
+  height: 100%;
+}
+.el-carousel__container {
+  height: 370px !important;
 }
 </style>
