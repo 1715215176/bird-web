@@ -13,7 +13,7 @@ router.post("/login", (req, res) => {
     if (err) {
       console.log(err);
       let data = {
-        data: '',
+        data: "",
         code: "400",
         message: "系统异常",
       };
@@ -21,7 +21,7 @@ router.post("/login", (req, res) => {
     }
     if (result.length === 0) {
       let data = {
-        data: '',
+        data: "",
         code: "400",
         message: "该账户未注册",
       };
@@ -33,6 +33,7 @@ router.post("/login", (req, res) => {
           data: {
             name: result[0].user_name,
             userId: result[0].user_id,
+            starList: result[0].like_news,
           },
           code: "200",
           message: "",
@@ -40,7 +41,7 @@ router.post("/login", (req, res) => {
         res.send(data);
       } else {
         let data = {
-          data: '',
+          data: "",
           code: "400",
           message: "密码错误",
         };
@@ -49,16 +50,16 @@ router.post("/login", (req, res) => {
     }
   });
 });
-router.post('/changePas', (req, res) => {
+router.post("/changePas", (req, res) => {
   const params = req.body;
-  const sql = `select * from user where user_id='${params.userId}'`
+  const sql = `select * from user where user_id='${params.userId}'`;
   conn.query(sql, (err, result) => {
     if (err) {
       console.log(err);
       const data = {
-        code: '400',
-        message: '系统异常'
-      }
+        code: "400",
+        message: "系统异常",
+      };
       res.send(data);
     }
     if (result.length > 0) {
@@ -68,28 +69,28 @@ router.post('/changePas', (req, res) => {
           if (err) {
             console.log(err);
             const data = {
-              code: '400',
-              message: '系统异常'
-            }
+              code: "400",
+              message: "系统异常",
+            };
             res.send(data);
           }
           if (result) {
             const data = {
-              code: '200',
-              message: ''
-            }
+              code: "200",
+              message: "",
+            };
             res.send(data);
           }
-        })
+        });
       } else {
         let data = {
-          data: '',
+          data: "",
           code: "400",
           message: "初始密码错误",
         };
         res.send(data);
       }
     }
-  })
-})
+  });
+});
 module.exports = router;

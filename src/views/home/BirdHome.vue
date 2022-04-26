@@ -8,6 +8,18 @@
       <div class="echarts-item">
         <div id="echarts2"></div>
       </div>
+      <el-card class="echarts-item">
+        <span slot="header">新闻列表</span>
+        <div
+          v-for="item in newsList"
+          :key="item.id"
+          class="news-item"
+          @click="newsDetaol(item.id)"
+        >
+          <div class="title-name">{{ item.titleName }}</div>
+          <div class="date">{{ item.date }}</div>
+        </div>
+      </el-card>
     </el-row>
   </div>
 </template>
@@ -15,11 +27,17 @@
 <script>
 import * as echarts from "echarts";
 export default {
+  data() {
+    return {
+      newsList: [],
+    };
+  },
   /** 页面加载会执行这个方法 */
   mounted() {
     this.init();
     this.init1();
     this.init2();
+    this.getNewsList();
   },
   methods: {
     init() {
@@ -102,7 +120,7 @@ export default {
       const chartDom = document.getElementById("echarts1");
       const myChart = echarts.init(chartDom);
       const option = {
-         title: {
+        title: {
           text: "近几年灭绝的鸟类数量",
           subtext: "Fake Data",
         },
@@ -139,54 +157,66 @@ export default {
       myChart.setOption(option);
     },
     // 鸟类占比饼图
-    init2 () {
-       const chartDom = document.getElementById("echarts2");
+    init2() {
+      const chartDom = document.getElementById("echarts2");
       const myChart = echarts.init(chartDom);
       const option = {
-         tooltip: {
-    trigger: 'item'
-  },
-  legend: {
-    top: '5%',
-    left: 'center'
-  },
-  series: [
-    {
-      name: 'Access From',
-      type: 'pie',
-      radius: ['40%', '70%'],
-      avoidLabelOverlap: false,
-      itemStyle: {
-        borderRadius: 10,
-        borderColor: '#fff',
-        borderWidth: 2
-      },
-      label: {
-        show: false,
-        position: 'center'
-      },
-      emphasis: {
-        label: {
-          show: true,
-          fontSize: '40',
-          fontWeight: 'bold'
-        }
-      },
-      labelLine: {
-        show: false
-      },
-      data: [
-        { value: 1048, name: '现存的鸟类' },
-        { value: 735, name: '灭绝的鸟类' },
-        { value: 580, name: '濒临灭绝的鸟类' },
-        { value: 484, name: '等级保护鸟类' },
-        { value: 300, name: '未被保护的鸟类' }
-      ]
-    }
-  ]
+        tooltip: {
+          trigger: "item",
+        },
+        legend: {
+          top: "5%",
+          left: "center",
+        },
+        series: [
+          {
+            name: "Access From",
+            type: "pie",
+            radius: ["40%", "70%"],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: "#fff",
+              borderWidth: 2,
+            },
+            label: {
+              show: false,
+              position: "center",
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: "40",
+                fontWeight: "bold",
+              },
+            },
+            labelLine: {
+              show: false,
+            },
+            data: [
+              { value: 1048, name: "现存的鸟类" },
+              { value: 735, name: "灭绝的鸟类" },
+              { value: 580, name: "濒临灭绝的鸟类" },
+              { value: 484, name: "等级保护鸟类" },
+              { value: 300, name: "未被保护的鸟类" },
+            ],
+          },
+        ],
       };
       myChart.setOption(option);
-    }
+    },
+    async getNewsList() {
+      const res = await this.$axios.post("/api/news/getNewsList");
+      if (res.code === "200") {
+        this.newsList = res.data;
+        this.newsList.forEach((item) => {
+          item.date = this.$moment(item.date).format("YYYY-MM-DD hh:mm:ss");
+        });
+      }
+    },
+    newsDetaol(id) {
+      this.$router.push({ name: "newsDetail", query: { id } });
+    },
   },
 };
 </script>
@@ -198,7 +228,8 @@ export default {
   background-color: #fff;
 }
 .echarts-item {
-  width: 600px;
+  flex: 1;
+  margin-right: 10px;
   height: 400px;
 }
 #echarts1 {
@@ -212,5 +243,25 @@ export default {
   height: 100%;
   background-color: #fff;
   margin-top: 10px;
+}
+.el-card {
+  margin-top: 10px;
+}
+.news-item {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #ccc;
+  cursor: pointer;
+  height: 40px;
+  align-items: center;
+}
+.title-name {
+  display: -moz-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+.date {
+  color: #ccc;
 }
 </style>

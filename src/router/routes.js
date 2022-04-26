@@ -90,7 +90,7 @@ const routes = [
     redirect: "/dataset/swiperSet",
     children: [
       {
-        path: "/swiperSet",
+        path: "/dataset/swiperSet",
         meta: {
           title: "轮播图配置",
           icon: "",
@@ -100,6 +100,45 @@ const routes = [
         component: () =>
           import(
             /* webpackChunkName: "Home" */ "@/views/dataCenter/SwiperSet.vue"
+          ),
+      },
+      {
+        path: "/dataset/PressCenter",
+        meta: {
+          title: "新闻配置",
+          icon: "",
+          showInMenu: true,
+        },
+        name: "PressCenter",
+        component: () =>
+          import(
+            /* webpackChunkName: "Home" */ "@/views/dataCenter/PressCenter.vue"
+          ),
+      },
+      {
+        path: "/dataset/newsDetail",
+        meta: {
+          title: "新闻详情",
+          icon: "",
+          showInMenu: false,
+        },
+        name: "newsDetail",
+        component: () =>
+          import(
+            /* webpackChunkName: "Home" */ "@/views/dataCenter/newsDetail.vue"
+          ),
+      },
+      {
+        path: "/dataset/newsList",
+        meta: {
+          title: "新闻列表",
+          icon: "",
+          showInMenu: true,
+        },
+        name: "newsList",
+        component: () =>
+          import(
+            /* webpackChunkName: "Home" */ "@/views/dataCenter/NewsList.vue"
           ),
       },
     ],
