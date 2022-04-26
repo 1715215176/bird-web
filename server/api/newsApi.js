@@ -126,4 +126,47 @@ router.post("/likeNumAdd", (req, res) => {
     }
   });
 });
+// 评论
+router.post("/getCommentList", (req, res) => {
+  const parms = req.body;
+  const sql = `select * from comment_list where news_id=${parms.id}`;
+  connection.query(sql, function (err, result) {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      if (result) {
+        const dataMap = result.map((item) => {
+          return {
+            author: item.author,
+            date: moment(item.date).format("YYYY-MM-DD hh:mm:ss"),
+            content: item.content,
+          };
+        });
+        let data = {
+          data: dataMap,
+          code: "200",
+        };
+        res.send(data);
+      }
+    }
+  });
+});
+// 评论列表
+router.post("/publish", (req, res) => {
+  const parms = req.body;
+  const sql = `insert into comment_list (news_id, author, date, content ) values (${parms.newsId}, '${parms.author}','${parms.date}', '${parms.content}')`;
+  connection.query(sql, function (err, result) {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      let data = {
+        data: "",
+        code: "200",
+      };
+      res.send(data);
+    }
+  });
+});
 module.exports = router;

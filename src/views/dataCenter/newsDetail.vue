@@ -22,6 +22,30 @@
           ></span
         >
       </div>
+      <el-input
+        v-model="comment"
+        placeholder="请输入你的评论"
+        type="textarea"
+        size="small"
+        clearable
+        class="mt10"
+      ></el-input>
+      <div class="tr mt10">
+        <el-button type="primary" size="small" @click="publish">发表</el-button>
+      </div>
+      <div
+        v-for="(item, index) in commentList"
+        :key="index"
+        class="comment-item"
+      >
+        <el-row type="flex" justify="space-between">
+          <span class="date">{{ item.date }}</span>
+        </el-row>
+        <el-row class="mt10">
+          <span>{{ item.content }}</span>
+        </el-row>
+        <el-divider content-position="right">{{ item.author }}</el-divider>
+      </div>
     </el-card>
   </div>
 </template>
@@ -34,14 +58,18 @@ export default {
       id: this.$route.query.id,
       contentList: [],
       isDianzan: false,
+      comment: "",
+      userInfo: {},
+      commentList: [],
     };
   },
   async mounted() {
     await this.getNewsList();
     this.browseNumAdd();
-    const userInfo = JSON.parse(localStorage.getItem("hotelUserInfo"));
-    if (userInfo.starList) {
-      this.stars = userInfo.starList.split(",");
+    this.getCommentList();
+    this.userInfo = JSON.parse(localStorage.getItem("hotelUserInfo"));
+    if (this.userInfo.starList) {
+      this.stars = this.userInfo.starList.split(",");
     } else {
       this.stars = [];
     }
@@ -58,6 +86,14 @@ export default {
       if (res.code === "200") {
         this.newsInfo = res.data;
         this.contentList = res.data.content.split("\n");
+      }
+    },
+    async getCommentList() {
+      const res = await this.$axios.post("/api/news/getCommentList", {
+        id: this.id,
+      });
+      if (res.code === "200") {
+        this.commentList = res.data;
       }
     },
     /** 进来页面浏览量加一 */
@@ -88,6 +124,21 @@ export default {
       };
       await this.$axios.post("/api/news/likeNumAdd", params);
       this.getNewsList();
+    },
+    /** 评论 */
+    async publish() {
+      const params = {
+        newsId: this.id,
+        author: this.userInfo.name,
+        date: this.$moment().format("YYYY-MM-DD hh:mm:ss"),
+        content: this.comment,
+      };
+      const res = await this.$axios.post("/api/news/publish", params);
+      if (res.code === "200") {
+        this.$message.success("评论成功~");
+        this.getCommentList();
+        this.comment = "";
+      }
     },
   },
 };
@@ -129,5 +180,19 @@ p {
 }
 .mr10 {
   margin-right: 10px;
+}
+.comment-item {
+  background-color: #fff;
+  height: 80px;
+}
+.date {
+  font-size: 14px;
+  color: #ccc;
+}
+.mt10 {
+  margin-top: 10px;
+}
+.tr {
+  text-align: right;
 }
 </style>
