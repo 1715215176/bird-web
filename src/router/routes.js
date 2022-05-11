@@ -144,6 +144,33 @@ const routes = [
     ],
   },
   {
+    path: "/userMenegement",
+    name: "userMenegement",
+    meta: {
+      title: "用户管理",
+      icon: "el-icon-s-custom",
+      showInMenu: true,
+    },
+    redirect: "/userMenegement/userList",
+    component: () =>
+      import(/* webpackChunkName: "Layout" */ "@/views/Layout.vue"),
+    children: [
+      {
+        path: "/userMenegement/userList",
+        name: "userList",
+        meta: {
+          title: "用户列表",
+          icon: "",
+          showInMenu: true,
+        },
+        component: () =>
+          import(
+            /* webpackChunkName: "hotelMenegement" */ "@/views/userMenegement/UserList.vue"
+          ),
+      },
+    ],
+  },
+  {
     path: "/login",
     name: "Login",
     meta: {
@@ -152,6 +179,15 @@ const routes = [
     },
     component: () =>
       import(/* webpackChunkName: "Layout" */ "@/views/Login.vue"),
+  },
+  {
+    path: "/404",
+    name: "Error404",
+    meta: {
+      title: "无权限",
+      showInMenu: false,
+    },
+    component: () => import(/* webpackChunkName: "Layout" */ "@/views/404.vue"),
   },
 ];
 

@@ -180,13 +180,14 @@ export default {
     };
   },
   mounted() {
+    this.activeName = localStorage.getItem("activeName") || "Home";
+    this.breadcrumb = this.getTree(this.activeName);
+    this.$router.push({ name: this.activeName });
     this.$nextTick(() => {
-      this.menuList = this.$router.options.routes;
-      this.activeName = localStorage.getItem("activeName") || "Home";
-      this.$router.push({ name: this.activeName });
-      this.breadcrumb = this.getTree(this.activeName);
+      this.menuList = JSON.parse(JSON.stringify(this.$router.options.routes));
+      this.userInfo = JSON.parse(localStorage.getItem("hotelUserInfo"));
+      this.getPrivilegeList();
     });
-    this.userInfo = JSON.parse(localStorage.getItem("hotelUserInfo"));
   },
   methods: {
     /** 菜单栏点击 */
@@ -223,6 +224,27 @@ export default {
       localStorage.removeItem("hotelUserInfo");
       localStorage.removeItem("activeName");
       this.$router.push({ name: "Login" });
+    },
+    getPrivilegeList() {
+      const privilegeList = this.userInfo.privilegeList.split(",");
+      this.menuList.forEach((item) => {
+        if (item.children && item.children.length > 0) {
+          item.children.forEach((element) => {
+            const flag = privilegeList.includes(element.name);
+            if (!flag) {
+              element.meta.showInMenu = false;
+            }
+          });
+        }
+      });
+      this.menuList.forEach((item) => {
+        if (item.children && item.children.length > 0) {
+          const flag = item.children.every((v) => !v.meta.showInMenu);
+          if (flag) {
+            item.meta.showInMenu = false;
+          }
+        }
+      });
     },
     async pwsSave() {
       const params = {
